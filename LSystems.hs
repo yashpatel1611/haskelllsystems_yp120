@@ -40,51 +40,100 @@ type ColouredLine
 
 -- Returns the rotation angle for the given system.
 angle :: LSystem -> Float
-angle
-  = undefined
+angle (a, _, _)
+  = a
 
 -- Returns the axiom string for the given system.
 axiom :: LSystem -> String
-axiom
-  = undefined
+axiom (_, ax, _)
+  = ax
 
 -- Returns the set of rules for the given system.
 rules :: LSystem -> Rules
-rules
-  = undefined
+rules (_, _, rs)
+  = rs
 
 -- Return the binding for the given character in the list of rules
 lookupChar :: Char -> Rules -> String
 -- Pre: the character has a binding in the Rules list
-lookupChar
-  = undefined
+lookupChar c rs@((ch, s) : r')
+  | c == ch = s
+  | otherwise = lookupChar c r'
+
+lookupChar _ []
+  = ""
+
 
 -- Expand command string s once using rule table r
 expandOne :: String -> Rules -> String
-expandOne
-  = undefined
+expandOne a@(s : ss) r
+  | lookupres == "" = [s] ++ recurse
+  | otherwise     = lookupres ++ recurse
+  where
+    lookupres = lookupChar s r
+    recurse = expandOne ss r
+  
+
+expandOne "" _
+  = ""
 
 -- Expand command string s n times using rule table r
 expand :: String -> Int -> Rules -> String
-expand
-  = undefined
+expand s n r
+  | n == 0 = s
+  | n == 1 = expandOne s r
+  | otherwise = expand ex (n-1) r
+  where
+    ex = expandOne s r
 
 -- Move a turtle
 move :: Command -> Angle -> TurtleState -> TurtleState
-move
-  = undefined
+move c a s@(pos@(x, y), o)
+  | c == 'R'  = (pos, o - a)
+  | c == 'L'  = (pos, o + a)
+  | c == 'F'  = ((x + (cos rad), y + (sin rad)), o)
+  | otherwise = s
+  where
+    rad = o * (pi / 180)
 
 --
 -- Trace lines drawn by a turtle using the given colour, following the
 -- commands in `cs' and assuming the given angle of rotation.
 --
+-- The function 'trace1' uses mainly recursion to calculate the lines
 trace1 :: Commands -> Angle -> Colour -> [ColouredLine]
-trace1
-  = undefined
+trace1 cs a c
+  = snd (trace1' cs ((0,0), 90))
+  where
+    trace1' [] _ = ([], [])
+    trace1' (x : xs) prev@(pos, _)
+      | x == ']' = (xs, [])
+      | x == '[' = (cmnds', lines ++ lines')
+      | x == 'F' = (cmnds'', (pos, e, c) : lines'')
+      | otherwise = (cmnds'', lines'')
+      where
+        state@(e, o) = move x a prev
+        (cmnds, lines) = trace1' xs prev
+        (cmnds', lines') = trace1' cmnds prev
+        (cmnds'' , lines'') = trace1' xs state
 
+-- The function 'trace2' uses a stack list
+-- This list is added to or removed from depending on whether
+-- The function encounters a '[' or ']' respectively.
 trace2 :: Commands -> Angle -> Colour -> [ColouredLine]
-trace2
-  = undefined
+trace2 cs a c
+  = trace2' cs [] ((0, 0), 90)
+  where
+    trace2' [] _ _ = []
+    trace2' (x : xs) states prev@(pos, _)
+      | x == ']' = trace2' xs ss s
+      | x == '[' = trace2' xs (prev : states) prev
+      | x == 'F' = (pos, e, c) : trace2' xs states curr
+      | otherwise = trace2' xs states curr
+      where
+        curr@(e, o) = move x a prev
+        s = head states
+        ss = tail states
 
 ----------------------------------------------------------
 -- Some given functions

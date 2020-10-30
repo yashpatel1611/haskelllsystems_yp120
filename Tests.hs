@@ -77,7 +77,7 @@ moveTestCases
 traceTestCases
   = [ ((expandOne (expand (axiom triangle) 1 (rules triangle)) commandMap),
       (angle triangle), blue)
-      ==> sort [ ((0.0,0.0),(1.0,0.0),(0.0,0.0,1.0))
+      ==>  sort [ ((0.0,0.0),(1.0,0.0),(0.0,0.0,1.0))
                , ((1.0,0.0),(0.99999994,1.0),(0.0,0.0,1.0))
                , ((0.99999994,1.0),(2.0,1.0),(0.0,0.0,1.0))
                , ((2.0,1.0),(2.0,0.0),(0.0,0.0,1.0))
